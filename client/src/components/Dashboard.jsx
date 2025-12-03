@@ -56,10 +56,10 @@ const RiskGauge = ({ level }) => {
   return (
     <div className="relative flex flex-col items-center justify-center py-6">
       <div className="w-48 h-24 overflow-hidden relative">
-        <div className="w-48 h-48 rounded-full border-[16px] border-slate-100 absolute top-0 left-0 box-border"></div>
+        <div className="w-48 h-48 rounded-full border-16 border-slate-100 absolute top-0 left-0 box-border"></div>
 
         <div
-          className={`w-48 h-48 rounded-full border-[16px] absolute top-0 left-0 box-border transition-all duration-1000 ease-out border-t-transparent border-r-transparent border-l-transparent ${
+          className={`w-48 h-48 rounded-full border-16 absolute top-0 left-0 box-border transition-all duration-1000 ease-out border-t-transparent border-r-transparent border-l-transparent ${
             getRiskColor().split(" ")[1]
           }`}
           style={{
@@ -204,7 +204,7 @@ export const Dashboard = () => {
           <div className="absolute inset-0 bg-[url('https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/120.7587,14.9495,12,0/800x600?access_token=placeholder')] bg-cover opacity-50"></div>
           
           {/* Weather Overlay */}
-          <div className="relative z-10 p-6 flex-1 flex flex-col justify-between bg-gradient-to-b from-slate-900/80 to-transparent">
+          <div className="relative z-10 p-6 flex-1 flex flex-col justify-between bg-linear-to-b from-slate-900/80 to-transparent">
              <div className="flex justify-between items-start">
                <span className="bg-slate-900/90 text-white text-xs font-bold px-2 py-1 rounded border border-slate-700 shadow-sm">
                   Live Incident Map
