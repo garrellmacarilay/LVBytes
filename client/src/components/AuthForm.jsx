@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signupUser, loginUser, logoutUser } from "../services/userService";
+import { signupUser, loginUser } from "../services/userService";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../lib/firebase";
 
