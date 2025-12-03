@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "postinstall": "npx lightningcss --install"
+    "preinstall": "npm rebuild lightningcss"
     
   },
   "dependencies": {
