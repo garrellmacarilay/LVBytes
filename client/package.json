@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "preinstall": "npm rebuild lightningcss"
+    "preview": "vite preview"
     
   },
   "dependencies": {
