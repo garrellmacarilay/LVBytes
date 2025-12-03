@@ -201,7 +201,7 @@ export const Dashboard = () => {
 
         {/* Live Map / Weather Map */}
         <div className="bg-slate-900 rounded-2xl shadow-sm overflow-hidden relative border border-slate-800 min-h-[300px] group flex flex-col">
-          <div className="absolute inset-0 bg-[url('https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/120.7587,14.9495,12,0/800x600?access_token=placeholder')] bg-cover opacity-50"></div>
+          <div className="absolute inset-0 bg-[url('https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/120.7587,14.9495,12,0/800x600?access_token=sk.eyJ1IjoiYm9zcy1nYTE0IiwiYSI6ImNtaXFrczRhcjA2NGU1dnNhNzRlOWY5M3IifQ.RVigKcWwShu06MEoIfWPgw')] bg-cover opacity-100"></div>
           
           {/* Weather Overlay */}
           <div className="relative z-10 p-6 flex-1 flex flex-col justify-between bg-linear-to-b from-slate-900/80 to-transparent">
