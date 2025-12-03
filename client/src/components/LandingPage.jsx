@@ -109,7 +109,7 @@ export const LandingPage = () => {
                       Using a placeholder Philippine map for now.
                   */}
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Philippines_location_map.svg/1024px-Philippines_location_map.svg.png"
+                src="/img/PH Map.jpg"
                 alt="Live Flood Map Visualization"
                 className="w-full h-full object-contain p-8"
               />
