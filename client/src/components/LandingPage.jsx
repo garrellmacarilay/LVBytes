@@ -75,7 +75,7 @@ export const LandingPage = () => {
 
             <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-8">
               Disaster Response, <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-indigo-600">
                 Reimagined.
               </span>
             </h1>
@@ -103,13 +103,13 @@ export const LandingPage = () => {
             </div>
 
             {/* Dashboard Preview Mockup with Static Map Image */}
-            <div className="relative mx-auto max-w-5xl rounded-2xl shadow-2xl bg-white rotate-x-12 transform-gpu overflow-hidden aspect-[16/9] z-20">
+            <div className="relative mx-auto max-w-5xl rounded-2xl shadow-2xl bg-white rotate-x-12 transform-gpu overflow-hidden aspect-video z-20">
               {/* 
                       NOTE: Replace the src below with the URL of the specific image you want to use.
                       Using a placeholder Philippine map for now.
                   */}
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Philippines_location_map.svg/1024px-Philippines_location_map.svg.png"
+                src="/img/PH Map.jpg"
                 alt="Live Flood Map Visualization"
                 className="w-full h-full object-contain p-8"
               />
