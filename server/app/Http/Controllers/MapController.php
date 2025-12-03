@@ -27,7 +27,12 @@ class MapController extends Controller
     public function nearby(Request $request)
     {
         return response()->json(
-            $this->mapService->nearby($request->lat, $request->lon, $request->radius, $request->keyword)
+            $this->mapService->nearby(
+                (float) $request->query('lat'),
+                (float) $request->query('lon'),
+                (int) $request->query('radius', 1500),
+                $request->query('keyword')
+            )
         );
     }
 }
