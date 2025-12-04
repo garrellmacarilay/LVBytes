@@ -10,6 +10,8 @@ import { ReportIncident } from './components/ReportIncident';
 import OfflineOverlay from './components/OfflineOverlay';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './lib/firebase';
+// Import debug utilities (available in console as ChatDebug)
+import './utils/debugChat';
 
 const App = () => {
   const [user, setUser] = useState(null);

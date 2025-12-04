@@ -36,18 +36,20 @@ export const Layout = ({ user, isOffline }) => {
       </div>
 
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto flex flex-col ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto flex flex-col h-screen ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="h-16 flex items-center px-6 bg-slate-950">
+        {/* Header - Fixed at top */}
+        <div className="shrink-0 h-16 flex items-center px-6 bg-slate-950">
           <Shield className="w-6 h-6 text-blue-400 mr-2" />
           <span className="text-xl font-bold tracking-tight">
             FloodGuard AI
           </span>
         </div>
 
-        <div className="flex-1 px-4 py-6 space-y-2">
+        {/* Navigation - Scrollable middle section */}
+        <div className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
           <NavLink
             to="/dashboard"
             className={({ isActive }) =>
@@ -92,19 +94,20 @@ export const Layout = ({ user, isOffline }) => {
           </NavLink>
         </div>
 
-        <div className="p-4 border-t border-slate-800">
+        {/* Profile Section - Fixed at bottom, always visible */}
+        <div className="shrink-0 p-4 border-t border-slate-800 bg-slate-900">
           <div className="flex items-center mb-4">
-            <div className="bg-blue-900 p-2 rounded-full mr-3">
+            <div className="bg-blue-900 p-2 rounded-full mr-3 shrink-0">
               <UserIcon className="w-5 h-5 text-blue-200" />
             </div>
-            <div>
-              <p className="text-sm font-medium">{user.name}</p>
-              <p className="text-xs text-blue-400">Verified Resident</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium truncate">{user.name}</p>
+              <p className="text-xs text-blue-400 truncate">Verified Resident</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full text-xs text-slate-500 hover:text-slate-300 text-center mt-2"
+            className="w-full text-xs text-slate-500 hover:text-slate-300 hover:bg-slate-800 px-3 py-2 rounded-lg transition-colors"
           >
             Sign Out
           </button>
