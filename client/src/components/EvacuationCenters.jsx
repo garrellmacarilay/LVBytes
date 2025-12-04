@@ -1,5 +1,64 @@
 import React, { useState, useEffect, useRef } from "react"
 import { MapPin, Navigation, Shield } from "./Icons"
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import 'leaflet-routing-machine'
+
+// Fix for default markers in Leaflet with bundlers
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+})
+
+// Add custom CSS styles for markers
+const markerStyles = `
+  .user-marker-icon {
+    background: transparent !important;
+    border: none !important;
+  }
+  
+  .marker-pin {
+    width: 30px;
+    height: 30px;
+    border-radius: 50% 50% 50% 0;
+    position: absolute;
+    transform: rotate(-45deg);
+    left: 50%;
+    top: 50%;
+    margin: -15px 0 0 -15px;
+  }
+  
+  .marker-pin.open {
+    background: #10b981;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  }
+  
+  .marker-pin.full {
+    background: #ef4444;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+  }
+  
+  .marker-pin.closed {
+    background: #6b7280;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(107, 114, 128, 0.4);
+  }
+`
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style')
+  styleSheet.type = 'text/css'
+  styleSheet.innerText = markerStyles
+  if (!document.head.querySelector('style[data-leaflet-markers]')) {
+    styleSheet.setAttribute('data-leaflet-markers', 'true')
+    document.head.appendChild(styleSheet)
+  }
+}
 
 // Real Data for Apalit, Pampanga
 const initialCenters = [
@@ -371,7 +430,7 @@ export const EvacuationCenters = () => {
 
           {/* Clear Route Button - Only when route active */}
           {activeRouteId && (
-            <div className="absolute bottom-6 right-4 z-[400]">
+            <div className="absolute bottom-6 right-4 z-400">
               <button
                 onClick={clearRoute}
                 className="bg-white text-red-600 text-xs font-bold px-3 py-2 rounded-lg shadow-lg border border-slate-200 hover:bg-red-50 transition-colors"
@@ -381,7 +440,7 @@ export const EvacuationCenters = () => {
             </div>
           )}
 
-          <div className="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-lg shadow-md text-[10px] text-slate-500 border border-slate-200 z-[400] flex items-center">
+          <div className="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-lg shadow-md text-[10px] text-slate-500 border border-slate-200 z-400 flex items-center">
             <Shield className="w-3 h-3 mr-1 text-blue-500" />
             Live Updates
           </div>
@@ -417,7 +476,7 @@ export const EvacuationCenters = () => {
               </div>
 
               <div className="flex items-start gap-2 mb-4">
-                <div className="mt-1 min-w-[20px] h-[20px] rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">
+                <div className="mt-1 min-w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">
                   {index + 1}
                 </div>
                 <div className="flex-1">
