@@ -1,7 +1,7 @@
-# Azen AI
+# Flood Guard
 A Web-Based Community Command Center for Flood Preparedness & Response
 
-Azen AI is a web-based disaster-response platform designed to support communities during flood events. It provides real-time situational awareness through verified alerts, hazard maps, and predictive models. Integrated with Google Gemini 2.5 Flash AI, the system delivers intelligent, location-aware guidance for residents and responders. A built-in Emergency Offline Mode ensures critical information remains accessible even without internet connectivity.
+Flood Guardis a web-based disaster-response platform designed to support communities during flood events. It provides real-time situational awareness through verified alerts, hazard maps, and predictive models. Integrated with Google Gemini 2.5 Flash AI, the system delivers intelligent, location-aware guidance for residents and responders. A built-in Emergency Offline Mode ensures critical information remains accessible even without internet connectivity.
 
 ---
 
