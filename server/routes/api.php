@@ -6,7 +6,7 @@ use App\Http\Controllers\MapController;
 use App\Http\Controllers\CrisisController;
 use App\Http\Controllers\GeminiController;
 use App\Http\Controllers\WeatherController;
-use App\Http\Controllers\GeminiController;
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();

@@ -21,22 +21,110 @@ Do not provide medical advice.
 Keep responses short and easy to read on mobile.
 `;
 
-// Create chat session
+// Create chat session with fallback models
 export const createChatSession = () => {
-  return ai.getGenerativeModel({ model: "gemini-2.5-flash" }).startChat({
-    systemInstruction: SYSTEM_INSTRUCTION,
-    temperature: 0.4,
-    thinkingConfig: { thinkingBudget: 0 } // disable deep thinking for speed
-  });
+  const modelNames = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-flash-latest", "gemini-pro-latest"];
+  
+  if (!apiKey) {
+    throw new Error("API_KEY is missing - check your .env file");
+  }
+  
+  for (const modelName of modelNames) {
+    try {
+      console.log(`Creating chat session with model: ${modelName}`);
+      
+      const model = ai.getGenerativeModel({ 
+        model: modelName
+      });
+      
+      const chatSession = model.startChat({
+        systemInstruction: SYSTEM_INSTRUCTION,
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 1000,
+        }
+      });
+      
+      console.log(`✅ Chat session created successfully with ${modelName}`);
+      return chatSession;
+    } catch (error) {
+      console.warn(`❌ Model ${modelName} failed for chat session:`, error.message);
+      continue;
+    }
+  }
+  
+  throw new Error("All Gemini models failed for chat session creation");
+};
+
+// Test Gemini API connection
+export const testGeminiConnection = async () => {
+  const modelNames = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-flash-latest", "gemini-pro-latest"];
+  
+  for (const modelName of modelNames) {
+    try {
+      console.log(`Testing model: ${modelName}`);
+      const model = ai.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent("Hello, respond with 'Connection successful'");
+      const response = await result.response;
+      const text = response.text();
+      console.log(`✅ Model ${modelName} works:`, text);
+      return text;
+    } catch (error) {
+      console.warn(`❌ Model ${modelName} failed:`, error.message);
+      continue;
+    }
+  }
+  
+  throw new Error("All Gemini models failed. Please check your API key and network connection.");
 };
 
 // Send chat message as a stream
 export const sendMessageStream = async (chat, message) => {
   try {
+    if (!chat) {
+      throw new Error("Chat session not initialized");
+    }
+    
+    console.log("Sending message to Gemini:", message);
     const response = await chat.sendMessageStream(message);
+    console.log("Gemini response received");
+    
     return response;
   } catch (error) {
     console.error("Gemini API Stream Error:", error);
+    
+    // Provide more specific error information
+    if (error.message?.includes('API_KEY')) {
+      throw new Error("API_KEY configuration issue: " + error.message);
+    } else if (error.message?.includes('quota')) {
+      throw new Error("quota exceeded: " + error.message);
+    } else if (!navigator.onLine) {
+      throw new Error("network connectivity issue");
+    }
+    
+    throw error;
+  }
+};
+
+// Fallback: Send message through server API
+export const sendMessageViaServer = async (message) => {
+  try {
+    const response = await fetch('/api/gemini/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.response;
+  } catch (error) {
+    console.error("Server API error:", error);
     throw error;
   }
 };
