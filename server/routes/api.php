@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\CrisisController;
 use App\Http\Controllers\GeminiController;
 use App\Http\Controllers\WeatherController;
 
@@ -21,4 +22,5 @@ Route::get('/map/nearby', [MapController::class, 'nearby']);
 //gemini api
 Route::post('/ask-ai', [GeminiController::class, 'chat']);
 
-
+//crisis alert api
+Route::get('/crisis/{city}', [CrisisController::class, 'show']);
