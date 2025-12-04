@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+
+class GeminiController extends Controller
+{
+    public function chat(Request $request): JsonResponse
+    {
+        try {
+            $message = $request->input('message');
+            
+            if (!$message) {
+                return response()->json([
+                    'error' => 'Message is required'
+                ], 400);
+            }
+
+            $geminiUrl = config('services.gemini.url');
+            $geminiKey = config('services.gemini.key');
+
+            if (!$geminiKey) {
+                return response()->json([
+                    'error' => 'Gemini API key not configured'
+                ], 500);
+            }
+
+            $systemPrompt = "You are FloodGuard AI, a specialized safety assistant for flood and disaster management. Your tone should be calm, reassuring, and concise. Prioritize clear instructions, evacuation guidance, and safety protocols. Use bullet points for lists. If a user asks about immediate life-threatening situations, advise them to contact emergency services immediately. Do not provide medical advice. Keep responses short and easy to read on mobile.";
+
+            $response = Http::timeout(30)
+                ->withoutVerifying() // Disable SSL verification for development
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                ])
+                ->post($geminiUrl . '?key=' . $geminiKey, [
+                    'contents' => [
+                        [
+                            'parts' => [
+                                [
+                                    'text' => $systemPrompt . "\n\nUser: " . $message
+                                ]
+                            ]
+                        ]
+                    ],
+                    'generationConfig' => [
+                        'temperature' => 0.4,
+                        'maxOutputTokens' => 1000,
+                    ]
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                    return response()->json([
+                        'response' => $data['candidates'][0]['content']['parts'][0]['text']
+                    ]);
+                } else {
+                    Log::error('Unexpected Gemini API response structure', ['data' => $data]);
+                    return response()->json([
+                        'error' => 'Unexpected API response format'
+                    ], 500);
+                }
+            } else {
+                Log::error('Gemini API error', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
+                
+                return response()->json([
+                    'error' => 'Failed to get response from AI service'
+                ], 500);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Gemini chat error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Internal server error'
+            ], 500);
+        }
+    }
+}
