@@ -3,6 +3,99 @@ import { Send, Mic, Shield } from './Icons';
 import { createChatSession, sendMessageStream, testGeminiConnection, sendMessageViaServer } from '../services/geminiService';
 import ChatStorageService from '../services/chatStorageService';
 
+// Evacuation Centers Data for context
+const initialCenters = [
+  {
+    id: "1",
+    name: "Sulipan Covered Court",
+    address: "Sulipan Barangay, Apalit (Via Sulipan Road)",
+    city: "Apalit",
+    coordinates: { lat: 14.9368921, lng: 120.7579668 },
+    phone: "(045) 302-7033",
+    status: "Open"
+  },
+  {
+    id: "2",
+    name: "Capalangan Permanent Evacuation Center",
+    address: "525 Alauli Rd, Capalangan Barangay",
+    city: "Apalit",
+    coordinates: { lat: 14.9309, lng: 120.7681 },
+    phone: "(045) 302-9999",
+    status: "Open"
+  },
+  {
+    id: "3",
+    name: "Apalit Municipal Covered Court",
+    address: "San Juan (Poblacion), Municipal Center",
+    city: "Apalit",
+    coordinates: { lat: 14.949561, lng: 120.758692 },
+    phone: "(045) 302-6001",
+    status: "Open"
+  },
+  {
+    id: "4",
+    name: "Apalit High School",
+    address: "151 Sulipan Road, Sulipan/San Vicente",
+    city: "Apalit",
+    coordinates: { lat: 14.941889, lng: 120.759722 },
+    phone: "(045) 302-5555",
+    status: "Full"
+  },
+  {
+    id: "5",
+    name: "Jose Escaler Memorial School",
+    address: "Governor Gonzales Avenue, San Juan",
+    city: "Apalit",
+    coordinates: { lat: 14.95, lng: 120.758 },
+    phone: "(045) 302-4444",
+    status: "Open"
+  },
+  {
+    id: "6",
+    name: "Tabuyuc Barangay Covered Court",
+    address: "Tabuyuc (Santo Rosario) Barangay",
+    city: "Apalit",
+    coordinates: { lat: 14.9738, lng: 120.7486 },
+    phone: "(045) 302-2222",
+    status: "Open"
+  },
+  {
+    id: "7",
+    name: "San Pedro Elementary School",
+    address: "San Pedro Barangay, Apalit",
+    city: "Apalit",
+    coordinates: { lat: 14.9425, lng: 120.7512 },
+    phone: "(045) 302-3333",
+    status: "Open"
+  },
+  {
+    id: "8",
+    name: "Cansinala Evacuation Center",
+    address: "Cansinala Barangay, Apalit",
+    city: "Apalit",
+    coordinates: { lat: 14.9567, lng: 120.7634 },
+    phone: "(045) 302-4444",
+    status: "Open"
+  }
+];
+
+// Helper to calculate distance
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Number((R * c).toFixed(2));
+};
+
+const deg2rad = deg => deg * (Math.PI / 180);
+
 export const ChatInterface = () => {
   const [messages, setMessages] = useState([
     {
@@ -19,9 +112,56 @@ export const ChatInterface = () => {
   const [conversationId, setConversationId] = useState(null);
   const [userId, setUserId] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [nearestCenters, setNearestCenters] = useState([]);
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+
+  // Function to get top 8 nearest evacuation centers
+  const getTop8NearestCenters = (userLat, userLng) => {
+    const centersWithDistance = initialCenters.map(center => ({
+      ...center,
+      distance: calculateDistance(userLat, userLng, center.coordinates.lat, center.coordinates.lng)
+    }));
+    
+    // Sort by distance and take top 8
+    return centersWithDistance
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, 8);
+  };
+
+  // Function to get user location
+  const getUserLocation = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const { latitude, longitude } = position.coords;
+          const fallbackPos = { lat: 14.9495, lng: 120.7587 }; // Apalit center
+          
+          // If user is > 50km away from Apalit, use fallback for demo
+          const distToApalit = calculateDistance(latitude, longitude, fallbackPos.lat, fallbackPos.lng);
+          
+          if (distToApalit > 50) {
+            console.log('User far from Apalit, using simulation location.');
+            resolve(fallbackPos);
+          } else {
+            resolve({ lat: latitude, lng: longitude });
+          }
+        },
+        error => {
+          console.warn('Geolocation error, using fallback location:', error);
+          resolve({ lat: 14.9495, lng: 120.7587 }); // Apalit fallback
+        },
+        { timeout: 10000, enableHighAccuracy: true }
+      );
+    });
+  };
 
   useEffect(() => {
     if (isInitialized) return; // Prevent multiple initializations
@@ -46,6 +186,30 @@ export const ChatInterface = () => {
           'Hello. I am FloodGuard AI. I can help you with flood risks, evacuation routes, and safety protocols. How can I assist you right now?',
           { messageType: 'welcome' }
         );
+        
+        // Get user location and nearest evacuation centers
+        try {
+          const location = await getUserLocation();
+          setUserLocation(location);
+          
+          const top8Centers = getTop8NearestCenters(location.lat, location.lng);
+          setNearestCenters(top8Centers);
+          
+          // Store location context in conversation
+          await ChatStorageService.logMessage(newConversationId, 'system', 
+            'Location context established',
+            { 
+              messageType: 'location_context',
+              userLocation: location,
+              nearestEvacuationCenters: top8Centers,
+              contextSummary: `User located at ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)} in Apalit, Pampanga. Nearest evacuation centers: ${top8Centers.slice(0, 3).map(c => `${c.name} (${c.distance}km)`).join(', ')}`
+            }
+          );
+          
+          console.log(`✅ Location context added: ${top8Centers.length} nearest centers`);
+        } catch (locationError) {
+          console.warn('Failed to get location context:', locationError);
+        }
         
         console.log(`✅ Chat session initialized: User ${currentUserId}, Conversation ${newConversationId}`);
         
@@ -212,10 +376,20 @@ export const ChatInterface = () => {
       let aiResponse = '';
       let apiUsed = 'server'; // Track which API was used
 
+      // Prepare context with nearest evacuation centers
+      let locationContext = '';
+      if (nearestCenters.length > 0) {
+        locationContext = `\n\nContext: User is currently in Apalit, Pampanga. Nearest evacuation centers are: ${nearestCenters.map(center => 
+          `${center.name} in ${center.city} (${center.distance}km away, coordinates: ${center.lat}, ${center.lng})`
+        ).join('; ')}. Use this information to provide relevant, location-specific guidance.`;
+      }
+
+      const messageWithContext = userMsg.text + locationContext;
+
       // Try server API first (most reliable)
       try {
         console.log("Using server API...");
-        aiResponse = await sendMessageViaServer(userMsg.text);
+        aiResponse = await sendMessageViaServer(messageWithContext);
         
         setMessages(prev =>
           prev.map(msg =>
@@ -229,7 +403,7 @@ export const ChatInterface = () => {
         if (chatSession) {
           try {
             apiUsed = 'direct';
-            const stream = await sendMessageStream(chatSession, userMsg.text);
+            const stream = await sendMessageStream(chatSession, messageWithContext);
             
             // Handle the streaming response properly
             for await (const chunk of stream.stream) {
