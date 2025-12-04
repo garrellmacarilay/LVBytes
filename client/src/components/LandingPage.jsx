@@ -103,7 +103,7 @@ export const LandingPage = () => {
             </div>
 
             {/* Dashboard Preview Mockup with Static Map Image */}
-            <div className="relative mx-auto max-w-5xl rounded-2xl shadow-2xl bg-white rotate-x-12 transform-gpu overflow-hidden aspect-video z-20">
+            <div className="relative mx-auto max-w-5xl rounded-2xl bg-tranasparent rotate-x-12 transform-gpu overflow-hidden aspect-video z-20">
               {/* 
                       NOTE: Replace the src below with the URL of the specific image you want to use.
                       Using a placeholder Philippine map for now.
@@ -111,7 +111,7 @@ export const LandingPage = () => {
               <img
                 src="/img/PH Map.jpg"
                 alt="Live Flood Map Visualization"
-                className="w-full h-full object-contain p-8"
+                className="w-full h-full object-contain"
               />
             </div>
           </div>
