@@ -34,11 +34,10 @@ export const ChatInterface = () => {
           {
             id: 'server-ready',
             role: 'model',
-            text: '**System Ready.** AI service is online via server. You can now ask me about flood safety and evacuation procedures.',
+            text: '**System Ready.** AI service is online. You can now ask me about flood safety and evacuation procedures.',
             timestamp: new Date(),
           }
         ]);
-        return; // Server works, don't try direct API
       } catch (serverError) {
         console.warn("❌ Server API failed, trying direct API:", serverError);
         
@@ -132,9 +131,34 @@ export const ChatInterface = () => {
       let aiResponse = '';
       let useServerFallback = false;
 
-      // Try server API first (most reliable)
-      try {
-        console.log("Using server API...");
+      // Try direct Gemini API first if chat session exists
+      if (chatSession) {
+        try {
+          const stream = await sendMessageStream(chatSession, userMsg.text);
+          
+          // Handle the streaming response properly
+          for await (const chunk of stream.stream) {
+            if (chunk.text) {
+              aiResponse += chunk.text();
+              setMessages(prev =>
+                prev.map(msg =>
+                  msg.id === aiMsgId ? { ...msg, text: aiResponse } : msg
+                )
+              );
+            }
+          }
+        } catch (streamError) {
+          console.warn("Direct API failed, trying server fallback:", streamError);
+          useServerFallback = true;
+        }
+      } else {
+        console.log("No chat session, using server fallback");
+        useServerFallback = true;
+      }
+
+      // Use server fallback if direct API failed
+      if (useServerFallback) {
+        console.log("Using server API fallback...");
         aiResponse = await sendMessageViaServer(userMsg.text);
         
         setMessages(prev =>
@@ -142,33 +166,6 @@ export const ChatInterface = () => {
             msg.id === aiMsgId ? { ...msg, text: aiResponse } : msg
           )
         );
-      } catch (serverError) {
-        console.warn("Server API failed, trying direct API:", serverError);
-        
-        // Try direct Gemini API as fallback if chat session exists
-        if (chatSession) {
-          try {
-            const stream = await sendMessageStream(chatSession, userMsg.text);
-            
-            // Handle the streaming response properly
-            for await (const chunk of stream.stream) {
-              if (chunk.text) {
-                aiResponse += chunk.text();
-                setMessages(prev =>
-                  prev.map(msg =>
-                    msg.id === aiMsgId ? { ...msg, text: aiResponse } : msg
-                  )
-                );
-              }
-            }
-          } catch (streamError) {
-            console.error("Both APIs failed:", streamError);
-            throw new Error("Both server and direct APIs failed: " + streamError.message);
-          }
-        } else {
-          console.error("No fallback available - no chat session");
-          throw new Error("Server API failed and no direct API session available: " + serverError.message);
-        }
       }
 
       // Mark streaming complete

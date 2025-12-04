@@ -23,29 +23,37 @@ Keep responses short and easy to read on mobile.
 
 // Create chat session with fallback models
 export const createChatSession = () => {
-  try {
-    if (!apiKey) {
-      throw new Error("API_KEY is missing - check your .env file");
-    }
-    
-    const model = ai.getGenerativeModel({ 
-      model: "gemini-2.5-flash"
-    });
-    
-    const chatSession = model.startChat({
-      systemInstruction: SYSTEM_INSTRUCTION,
-      generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 1000,
-      }
-    });
-    
-    console.log("✅ Chat session created successfully");
-    return chatSession;
-  } catch (error) {
-    console.error("Failed to create chat session:", error);
-    throw error;
+  const modelNames = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-flash-latest", "gemini-pro-latest"];
+  
+  if (!apiKey) {
+    throw new Error("API_KEY is missing - check your .env file");
   }
+  
+  for (const modelName of modelNames) {
+    try {
+      console.log(`Creating chat session with model: ${modelName}`);
+      
+      const model = ai.getGenerativeModel({ 
+        model: modelName
+      });
+      
+      const chatSession = model.startChat({
+        systemInstruction: SYSTEM_INSTRUCTION,
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 1000,
+        }
+      });
+      
+      console.log(`✅ Chat session created successfully with ${modelName}`);
+      return chatSession;
+    } catch (error) {
+      console.warn(`❌ Model ${modelName} failed for chat session:`, error.message);
+      continue;
+    }
+  }
+  
+  throw new Error("All Gemini models failed for chat session creation");
 };
 
 // Test Gemini API connection
