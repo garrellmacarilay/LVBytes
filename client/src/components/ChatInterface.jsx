@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Mic, Shield } from './Icons';
 import { createChatSession, sendMessageStream, testGeminiConnection, sendMessageViaServer } from '../services/geminiService';
 import ChatStorageService from '../services/chatStorageService';
+import { emergencyContacts, getContactsByCity, getCriticalContacts } from './ListEmergencyContacts';
 
 // Evacuation Centers Data for context
 const initialCenters = [
@@ -196,13 +197,18 @@ export const ChatInterface = () => {
           setNearestCenters(top8Centers);
           
           // Store location context in conversation
+          const localContacts = getContactsByCity('Apalit');
+          const criticalContacts = getCriticalContacts().slice(0, 3);
+          
           await ChatStorageService.logMessage(newConversationId, 'system', 
             'Location context established',
             { 
               messageType: 'location_context',
               userLocation: location,
               nearestEvacuationCenters: top8Centers,
-              contextSummary: `User located at ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)} in Apalit, Pampanga. Nearest evacuation centers: ${top8Centers.slice(0, 3).map(c => `${c.name} (${c.distance}km)`).join(', ')}`
+              emergencyContacts: localContacts,
+              criticalContacts: criticalContacts,
+              contextSummary: `User located at ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)} in Apalit, Pampanga. Nearest evacuation centers: ${top8Centers.slice(0, 3).map(c => `${c.name} (${c.distance}km)`).join(', ')}. Emergency contacts: ${criticalContacts.map(c => c.organization).join(', ')}`
             }
           );
           
@@ -376,12 +382,27 @@ export const ChatInterface = () => {
       let aiResponse = '';
       let apiUsed = 'server'; // Track which API was used
 
-      // Prepare context with nearest evacuation centers
+      // Prepare context with nearest evacuation centers and emergency contacts
       let locationContext = '';
       if (nearestCenters.length > 0) {
-        locationContext = `\n\nContext: User is currently in Apalit, Pampanga. Nearest evacuation centers are: ${nearestCenters.map(center => 
-          `${center.name} in ${center.city} (${center.distance}km away, coordinates: ${center.lat}, ${center.lng})`
-        ).join('; ')}. Use this information to provide relevant, location-specific guidance.`;
+        const localContacts = getContactsByCity('Apalit');
+        const criticalContacts = getCriticalContacts().slice(0, 5);
+        
+        locationContext = `\n\nContext: User is currently in Apalit, Pampanga. 
+
+NEAREST EVACUATION CENTERS: ${nearestCenters.map(center => 
+          `${center.name} in ${center.city} (${center.distance}km away, phone: ${center.phone || 'N/A'})`
+        ).join('; ')}.
+
+EMERGENCY CONTACTS: ${criticalContacts.map(contact => 
+          `${contact.organization}: ${contact.hotline}`
+        ).join('; ')}.
+
+LOCAL APALIT CONTACTS: ${localContacts.map(contact => 
+          `${contact.organization}: ${contact.hotline}`
+        ).join('; ')}.
+
+Use this information to provide relevant, location-specific guidance with exact contact numbers and evacuation center details.`;
       }
 
       const messageWithContext = userMsg.text + locationContext;
@@ -496,8 +517,10 @@ export const ChatInterface = () => {
   const quickPrompts = [
     "Am I in a risk zone?",
     "Where is the nearest evacuation center?",
-    "How to sandbag my door?",
-    "Emergency hotline numbers"
+    "Emergency hotline numbers for Apalit",
+    "How to prepare for flooding?",
+    "What should I pack for evacuation?",
+    "Flood safety tips"
   ];
 
   // Basic markdown bold

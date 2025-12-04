@@ -151,7 +151,7 @@ export const Dashboard = () => {
         >
           <Shield className="w-12 h-12 text-green-600 mb-3" />
           <h4 className="font-bold text-green-900">Evacuation Centers</h4>
-          <p className="text-xs text-green-700 mt-1">6 Centers Monitored</p>
+          <p className="text-xs text-green-700 mt-1">64 Centers Monitored</p>
         </div>
 
         {/* Report Incident - 1/4 */}
