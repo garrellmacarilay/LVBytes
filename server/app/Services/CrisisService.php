@@ -42,7 +42,7 @@ class CrisisService
 
         $data = $res->json();
 
-        return $data['weatherAlerts'] ?? [];
+        return $data['weatherAlerts'] ?? $data['alerts'] ?? [];
     }
 
     public function formatAlerts(array $alerts): array
