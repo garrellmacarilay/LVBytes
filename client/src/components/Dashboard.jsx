@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { AlertTriangle, CloudRain, Wind, Shield, MessageSquare, Phone, MapPin, Camera } from "./Icons";
 import { useNavigate } from "react-router-dom";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { fetchRealtimeWeather } from "../services/geminiService";
+import { useGeminiChat } from '../hooks/chatbot/useGeminiChat';
+import { useWeather } from "../hooks/weather/useWeather";
+import { useCrisisAlerts } from "../hooks/crisis/useCrisisAlerts";
 
 // JS Replacement for TypeScript Enum
 const RiskLevel = {
@@ -79,100 +81,64 @@ const RiskGauge = ({ level }) => {
 export const Dashboard = () => {
   const navigate = useNavigate();
 
-  const [riskLevel, setRiskLevel] = useState(RiskLevel.LOW);
+  const [riskLevel, setRiskLevel] = useState([]);
 
-  const [weather, setWeather] = useState({
-    rainfall: 0,
-    windSpeed: 0,
-    waterLevel: 2.3,
-    trend: "stable",
-    condition: "Loading...",
-    locationName: "Locating...",
+  const [location, setLocation] = useState(() => {
+    const savedLocation = sessionStorage.getItem("location");
+    return savedLocation || "Apalit";
   });
+
+  const [weather, setWeather] = useState(() => {
+    const savedWeather = sessionStorage.getItem("weather");
+    return savedWeather ? JSON.parse(savedWeather) : null;
+  });
+
+  const { weather: fetchedWeather, loading: loadingWeather } = useWeather(location)
+
+  const { alerts: crisisAlerts } = useCrisisAlerts(location);
+
+  const [alerts, setAlerts] = useState([]);
 
   const [isLoadingWeather, setIsLoadingWeather] = useState(true);
 
-  const [alerts, setAlerts] = useState([
-    {
-      id: "1",
-      type: "warning",
-      severity: "high",
-      title: "River Level Rising",
-      message: "Water levels at East Bank have exceeded 2.0m. Prepare for potential evacuation.",
-      timestamp: "10 min ago",
-    },
-  ]);
+    useEffect(() => {
+      const currentWeather = fetchedWeather || weather;
+      if (!currentWeather) return;
 
-  useEffect(() => {
-    const initWeather = async () => {
-      let lat = 14.9495;
-      let lng = 120.7587;
+      // Determine valid location name
+      const locName = currentWeather.city_name && currentWeather.city_name !== "unknown"
+        ? currentWeather.city_name
+        : "Apalit";
 
-      if (navigator.geolocation) {
-        try {
-          const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
-          });
-          lat = position.coords.latitude;
-          lng = position.coords.longitude;
-        } catch (e) {
-          console.log("Geolocation fallback used.");
-        }
-      }
+      setLocation(locName);
+      setWeather(currentWeather);
 
-      try {
-        const data = await fetchRealtimeWeather(lat, lng);
+      // Save to sessionStorage
+      sessionStorage.setItem("weather", JSON.stringify(currentWeather));
+      sessionStorage.setItem("location", locName);
 
-        setWeather((prev) => ({
-          ...prev,
-          rainfall: data.stats.rainfall,
-          windSpeed: data.stats.windSpeed,
-          condition: data.stats.condition,
-          locationName: data.stats.locationName,
-        }));
+      // Update risk level
+      const { rainfall = 0, wind_speed = 0 } = currentWeather;
+      if (rainfall > 50 || wind_speed > 100) setRiskLevel(RiskLevel.CRITICAL);
+      else if (rainfall > 20 || wind_speed > 60) setRiskLevel(RiskLevel.HIGH);
+      else if (rainfall > 5 || wind_speed > 30) setRiskLevel(RiskLevel.MODERATE);
+      else setRiskLevel(RiskLevel.LOW);
 
-        if (data.stats.rainfall > 50 || data.stats.windSpeed > 100) setRiskLevel(RiskLevel.CRITICAL);
-        else if (data.stats.rainfall > 20 || data.stats.windSpeed > 60) setRiskLevel(RiskLevel.HIGH);
-        else if (data.stats.rainfall > 5 || data.stats.windSpeed > 30) setRiskLevel(RiskLevel.MODERATE);
-        else setRiskLevel(RiskLevel.LOW);
-
-        if (data.alerts.length > 0) {
-          const newAlerts = data.alerts.map((a, i) => ({
-            id: `real-${i}`,
-            type: "advisory",
-            severity: "medium",
-            title: "Local Weather Alert",
-            message: a,
-            timestamp: "Just now",
-          }));
-          setAlerts((prev) => [...newAlerts, ...prev]);
-        }
-      } catch (error) {
-        console.error("Failed to load real weather", error);
-        setWeather((prev) => ({
-          ...prev,
-          condition: "Unavailable",
-          locationName: "Offline Mode",
-        }));
-      } finally {
-        setIsLoadingWeather(false);
-      }
-    };
-
-    initWeather();
-  }, []);
+  }, [fetchedWeather]);
 
   return (
      <div className="max-w-7xl mx-auto pb-20">
       {/* Location Header Update */}
       <div className="mb-6 flex items-center justify-between">
          <div>
-            <h2 className="text-2xl font-bold text-slate-900">{weather.locationName}</h2>
+            <h2 className="text-2xl font-bold text-slate-900">{location}</h2>
             <p className="text-slate-500 text-sm flex items-center">
-               {isLoadingWeather ? 'Updating live conditions...' : weather.condition}
+               {loadingWeather ? "Updating live conditions..." : weather?.description || "Unavailable"}
             </p>
          </div>
-         {isLoadingWeather && <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>}
+         {loadingWeather && (
+          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -186,14 +152,14 @@ export const Dashboard = () => {
               <CloudRain className="text-blue-500 w-8 h-8 mr-3" />
               <div>
                 <p className="text-xs text-gray-500">Rainfall</p>
-                <p className="text-lg font-bold text-gray-800">{weather.rainfall}mm</p>
+                <p className="text-lg font-bold text-gray-800">{weather?.rainfall ?? 0}mm</p>
               </div>
             </div>
             <div className="bg-slate-50 p-3 rounded-xl flex items-center">
               <Wind className="text-slate-500 w-8 h-8 mr-3" />
               <div>
                 <p className="text-xs text-gray-500">Wind</p>
-                <p className="text-lg font-bold text-gray-800">{weather.windSpeed}kph</p>
+                <p className="text-lg font-bold text-gray-800">{weather?.wind_speed ?? 0}kph</p>
               </div>
             </div>
           </div>
@@ -212,7 +178,7 @@ export const Dashboard = () => {
                <div className="flex flex-col items-end">
                   <div className="flex items-center text-white">
                      <CloudRain className="w-4 h-4 mr-1 text-blue-400" />
-                     <span className="font-bold text-lg">{weather.rainfall}mm</span>
+                     <span className="font-bold text-lg">{weather?.rainfall ?? 0}mm</span>
                   </div>
                   <span className="text-[10px] text-slate-300">Precipitation</span>
                </div>
@@ -260,9 +226,9 @@ export const Dashboard = () => {
                   <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
                      alert.severity === 'high' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
                   }`}>{alert.type}</span>
-                  <span className="text-xs text-gray-400">{alert.timestamp}</span>
+                  <span className="text-xs text-gray-400">{crisisAlerts.timestamp}</span>
                 </div>
-                <h4 className="font-bold text-gray-800 text-sm mb-1">{alert.title}</h4>
+                <h4 className="font-bold text-gray-800 text-sm mb-1">{crisisAlerts.location.city}</h4>
                 <p className="text-xs text-gray-600 leading-relaxed">{alert.message}</p>
               </div>
             ))}
