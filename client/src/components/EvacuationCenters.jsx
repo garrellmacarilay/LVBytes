@@ -3,6 +3,7 @@ import { MapPin, Navigation, Shield } from "./Icons"
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet-routing-machine'
+import {initialCenters} from "./ListEvacCenter"
 
 // Fix for default markers in Leaflet with bundlers
 delete L.Icon.Default.prototype._getIconUrl
@@ -60,63 +61,6 @@ if (typeof document !== 'undefined') {
   }
 }
 
-// Real Data for Apalit, Pampanga
-const initialCenters = [
-  {
-    id: "1",
-    name: "Sulipan Covered Court",
-    address: "Sulipan Barangay, Apalit (Via Sulipan Road)",
-    distance: 0, // Calculated dynamically
-    status: "Open",
-    coordinates: { lat: 14.9368921, lng: 120.7579668 },
-    phone: "(045) 302-7033"
-  },
-  {
-    id: "2",
-    name: "Capalangan Permanent Evacuation Center",
-    address: "525 Alauli Rd, Capalangan Barangay",
-    distance: 0,
-    status: "Open",
-    coordinates: { lat: 14.9309, lng: 120.7681 },
-    phone: "(045) 302-9999"
-  },
-  {
-    id: "3",
-    name: "Apalit Municipal Covered Court",
-    address: "San Juan (Poblacion), Municipal Center",
-    distance: 0,
-    status: "Open",
-    coordinates: { lat: 14.949561, lng: 120.758692 },
-    phone: "(045) 302-6001"
-  },
-  {
-    id: "4",
-    name: "Apalit High School",
-    address: "151 Sulipan Road, Sulipan/San Vicente",
-    distance: 0,
-    status: "Full", // Secondary center, marked full for demo variety
-    coordinates: { lat: 14.941889, lng: 120.759722 },
-    phone: "(045) 302-5555"
-  },
-  {
-    id: "5",
-    name: "Jose Escaler Memorial School",
-    address: "Governor Gonzales Avenue, San Juan",
-    distance: 0,
-    status: "Open",
-    coordinates: { lat: 14.95, lng: 120.758 },
-    phone: "(045) 302-4444"
-  },
-  {
-    id: "6",
-    name: "Tabuyuc Barangay Covered Court",
-    address: "Tabuyuc (Santo Rosario) Barangay",
-    distance: 0,
-    status: "Open",
-    coordinates: { lat: 14.9738, lng: 120.7486 },
-    phone: "(045) 302-2222"
-  }
-]
 
 // Helper to calculate distance
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -274,7 +218,8 @@ export const EvacuationCenters = () => {
       ).addTo(leafletMap.current).bindPopup(`
           <div class="font-sans text-sm">
             <h3 class="font-bold text-slate-800">${center.name}</h3>
-            <p class="text-slate-500 mb-2">${center.address}</p>
+            <p class="text-slate-500 mb-1">${center.address}</p>
+            <p class="text-blue-600 text-xs font-medium mb-2">${center.city}</p>
             <span class="inline-block px-2 py-0.5 rounded text-xs font-bold text-white ${
               center.status === "Open"
                 ? "bg-green-500"
@@ -366,9 +311,9 @@ export const EvacuationCenters = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto pb-4 lg:pb-20 h-[calc(100vh-6rem)] lg:h-auto flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       {/* Page Header */}
-      <div className="flex-none flex flex-col md:flex-row md:items-center justify-between mb-4 lg:mb-8 px-1">
+      <div className="shrink-0 max-w-7xl mx-auto w-full flex flex-col md:flex-row md:items-center justify-between py-4 px-4 lg:px-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
             Evacuation Centers
@@ -398,9 +343,9 @@ export const EvacuationCenters = () => {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-6 min-h-0">
-        {/* Map View - Flex Grow on Mobile to take space */}
-        <div className="flex-1 lg:flex-auto lg:col-span-2 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 relative shadow-inner group order-1 lg:order-2">
+      <div className="flex-1 max-w-7xl mx-auto w-full flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-6 px-4 lg:px-6 pb-4 lg:pb-6 min-h-0 overflow-hidden">
+        {/* Map View - Fixed within viewport */}
+        <div className="flex-1 lg:col-span-2 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 relative shadow-inner group order-1 lg:order-2 min-h-0">
           {/* The Map Container */}
           <div ref={mapRef} className="w-full h-full z-10" />
 
@@ -418,7 +363,7 @@ export const EvacuationCenters = () => {
 
           {/* Clear Route Button - Only when route active */}
           {activeRouteId && (
-            <div className="absolute bottom-6 right-4 z-400">
+            <div className="absolute bottom-6 right-4 z-[1000]">
               <button
                 onClick={clearRoute}
                 className="bg-white text-red-600 text-xs font-bold px-3 py-2 rounded-lg shadow-lg border border-slate-200 hover:bg-red-50 transition-colors"
@@ -428,87 +373,92 @@ export const EvacuationCenters = () => {
             </div>
           )}
 
-          <div className="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-lg shadow-md text-[10px] text-slate-500 border border-slate-200 z-400 flex items-center">
+          <div className="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-lg shadow-md text-[10px] text-slate-500 border border-slate-200 z-[1000] flex items-center">
             <Shield className="w-3 h-3 mr-1 text-blue-500" />
             Live Updates
           </div>
         </div>
 
-        {/* Centers List - Horizontal Scroll on Mobile, Vertical on Desktop */}
-        <div className="flex-none lg:flex-1 lg:col-span-1 flex flex-row lg:flex-col overflow-x-auto lg:overflow-y-auto gap-4 scrollbar-hide pb-2 lg:pb-0 snap-x snap-mandatory px-1 lg:px-0 lg:pr-2 order-2 lg:order-1 h-auto lg:h-full">
-          {filteredCenters.map((center, index) => (
-            <div
-              key={center.id}
-              className={`flex-none w-[85vw] sm:w-[350px] lg:w-full snap-center bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-all ${
-                activeRouteId === center.id
-                  ? "border-blue-500 ring-1 ring-blue-500 shadow-md"
-                  : "border-slate-100"
-              }`}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <span
-                  className={`px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wide ${
-                    center.status === "Open"
-                      ? "bg-green-100 text-green-700"
-                      : center.status === "Full"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-gray-100 text-gray-600"
+        {/* Centers List - Horizontal scroll on mobile, vertical on desktop */}
+        <div className="flex-1 lg:col-span-1 order-2 lg:order-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-x-auto lg:overflow-x-hidden lg:overflow-y-auto overflow-y-hidden lg:overflow-y-auto">
+            <div className="flex lg:flex-col gap-4 p-1 lg:pb-4">
+              {filteredCenters.map((center, index) => (
+                <div
+                  key={center.id}
+                  className={`w-[85vw] lg:w-full flex-shrink-0 lg:flex-shrink bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-all ${
+                    activeRouteId === center.id
+                      ? "border-blue-500 ring-1 ring-blue-500 shadow-md"
+                      : "border-slate-100"
                   }`}
                 >
-                  {center.status}
-                </span>
-                <span className="flex items-center text-slate-500 text-sm font-medium">
-                  <MapPin className="w-3.5 h-3.5 mr-1" />
-                  {center.distance} km
-                </span>
-              </div>
+                  <div className="flex justify-between items-start mb-2">
+                    <span
+                      className={`px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wide ${
+                        center.status === "Open"
+                          ? "bg-green-100 text-green-700"
+                          : center.status === "Full"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {center.status}
+                    </span>
+                    <span className="flex items-center text-slate-500 text-sm font-medium">
+                      <MapPin className="w-3.5 h-3.5 mr-1" />
+                      {center.distance} km
+                    </span>
+                  </div>
 
-              <div className="flex items-start gap-2 mb-4">
-                <div className="mt-1 min-w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">
-                  {index + 1}
+                  <div className="flex items-start gap-2 mb-4">
+                    <div className="mt-1 min-w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-slate-800 mb-1 leading-tight">
+                        {center.name}
+                      </h3>
+                      <p className="text-slate-500 text-xs mb-1">{center.address}</p>
+                      <p className="text-blue-600 text-xs font-medium">{center.city}, Pampanga</p>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => handleExternalNavigate(center)}
+                      className="flex items-center justify-center px-4 py-2 border border-slate-200 rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+                      title="Open in Google Maps App"
+                    >
+                      <MapPin className="w-4 h-4 mr-2 opacity-70" />
+                      G-Maps
+                    </button>
+                    <button
+                      onClick={() => handleEmbeddedNavigate(center)}
+                      className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm shadow-blue-200 transition-colors"
+                    >
+                      <Navigation className="w-4 h-4 mr-2" />
+                      Route
+                    </button>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-slate-800 mb-1 leading-tight">
-                    {center.name}
-                  </h3>
-                  <p className="text-slate-500 text-xs">{center.address}</p>
+              ))}
+
+              {filteredCenters.length === 0 && (
+                <div className="w-full text-center py-12 bg-white rounded-xl border border-slate-100 border-dashed">
+                  <p className="text-slate-400 text-sm">
+                    No evacuation centers found.
+                  </p>
+                  <button
+                    onClick={() => setFilter("all")}
+                    className="mt-2 text-blue-600 text-sm font-medium hover:underline"
+                  >
+                    Clear filters
+                  </button>
                 </div>
-              </div>
-
-              {/* Actions */}
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => handleExternalNavigate(center)}
-                  className="flex items-center justify-center px-4 py-2 border border-slate-200 rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
-                  title="Open in Google Maps App"
-                >
-                  <MapPin className="w-4 h-4 mr-2 opacity-70" />
-                  G-Maps
-                </button>
-                <button
-                  onClick={() => handleEmbeddedNavigate(center)}
-                  className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm shadow-blue-200 transition-colors"
-                >
-                  <Navigation className="w-4 h-4 mr-2" />
-                  Route
-                </button>
-              </div>
+              )}
             </div>
-          ))}
-
-          {filteredCenters.length === 0 && (
-            <div className="flex-none w-full text-center py-12 bg-white rounded-xl border border-slate-100 border-dashed">
-              <p className="text-slate-400 text-sm">
-                No evacuation centers found.
-              </p>
-              <button
-                onClick={() => setFilter("all")}
-                className="mt-2 text-blue-600 text-sm font-medium hover:underline"
-              >
-                Clear filters
-              </button>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

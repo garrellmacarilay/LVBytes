@@ -79,7 +79,7 @@ const RiskGauge = ({ level }) => {
 export const Dashboard = () => {
   const navigate = useNavigate();
 
-  const [riskLevel, setRiskLevel] = useState(RiskLevel.MODERATE);
+  const [riskLevel, setRiskLevel] = useState(RiskLevel.LOW);
 
   const [weather, setWeather] = useState({
     rainfall: 0,
