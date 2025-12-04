@@ -24,9 +24,11 @@ export const LandingPage = () => {
               className="flex items-center cursor-pointer"
               onClick={() => navigate("/")}
             >
-              <div className="bg-blue-600 p-2 rounded-xl mr-3 shadow-lg shadow-blue-600/20">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
+              <img 
+                src="/img/FloodGuard.png" 
+                alt="FloodGuard Logo" 
+                className="w-10 h-10 mr-3 object-contain"
+              />
               <span className="text-xl font-bold text-slate-900 tracking-tight">
                 FloodGuard AI
               </span>
@@ -222,9 +224,11 @@ export const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <div className="bg-blue-600 p-1.5 rounded-lg mr-2">
-                <Shield className="w-4 h-4 text-white" />
-              </div>
+              <img 
+                src="/img/FloodGuard.png" 
+                alt="FloodGuard Logo" 
+                className="w-6 h-6 mr-2 object-contain"
+              />
               <span className="text-slate-900 font-bold text-lg">
                 FloodGuard AI
               </span>
