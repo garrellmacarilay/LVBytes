@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { AlertTriangle, CloudRain, Wind, Shield, MessageSquare, Phone, MapPin, Camera } from "./Icons";
 import { useNavigate } from "react-router-dom";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { useGeminiChat } from '../hooks/chatbot/useGeminiChat';
+// import { useGeminiChat } from '../hooks/chatbot/useGeminiChat';
 import { useWeather } from "../hooks/weather/useWeather";
 import { useCrisisAlerts } from "../hooks/crisis/useCrisisAlerts";
 
