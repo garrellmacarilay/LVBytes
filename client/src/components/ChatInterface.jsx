@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Mic, Shield } from './Icons';
 import { createChatSession, sendMessageStream, testGeminiConnection, sendMessageViaServer } from '../services/geminiService';
+import ChatStorageService from '../services/chatStorageService';
 
 export const ChatInterface = () => {
   const [messages, setMessages] = useState([
@@ -15,68 +16,136 @@ export const ChatInterface = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [chatSession, setChatSession] = useState(null);
+  const [conversationId, setConversationId] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
   useEffect(() => {
+    if (isInitialized) return; // Prevent multiple initializations
+    
     const initializeChat = async () => {
       console.log("🚀 Initializing FloodGuard AI...");
       
-      // Always test server fallback first as it's more reliable
       try {
-        console.log("Testing server API...");
-        const testResponse = await sendMessageViaServer("Test");
-        console.log("✅ Server API working:", testResponse);
+        // Initialize user and conversation tracking
+        const currentUserId = ChatStorageService.getUserId();
+        setUserId(currentUserId);
         
-        setMessages(prev => [
-          ...prev,
-          {
+        const newConversationId = await ChatStorageService.createConversation(currentUserId, {
+          sessionType: 'flood_guard_chat',
+          userAgent: navigator.userAgent,
+          startUrl: window.location.href
+        });
+        setConversationId(newConversationId);
+        
+        // Log initial system message
+        await ChatStorageService.logMessage(newConversationId, 'model', 
+          'Hello. I am FloodGuard AI. I can help you with flood risks, evacuation routes, and safety protocols. How can I assist you right now?',
+          { messageType: 'welcome' }
+        );
+        
+        console.log(`✅ Chat session initialized: User ${currentUserId}, Conversation ${newConversationId}`);
+        
+        // Test server API first
+        try {
+          console.log("Testing server API...");
+          const testResponse = await sendMessageViaServer("Test");
+          console.log("✅ Server API working:", testResponse);
+          
+          const systemReadyMessage = {
             id: 'server-ready',
             role: 'model',
             text: '**System Ready.** AI service is online. You can now ask me about flood safety and evacuation procedures.',
             timestamp: new Date(),
-          }
-        ]);
-      } catch (serverError) {
-        console.warn("❌ Server API failed, trying direct API:", serverError);
-        
-        // Try direct API as fallback
-        try {
-          console.log("Testing direct Gemini API...");
-          await testGeminiConnection();
-          console.log("✅ Direct API connection successful");
+          };
           
-          const session = createChatSession();
-          setChatSession(session);
+          setMessages(prev => [...prev, systemReadyMessage]);
           
-          setMessages(prev => [
-            ...prev,
-            {
+          // Log system ready message
+          await ChatStorageService.logMessage(newConversationId, 'model', 
+            systemReadyMessage.text,
+            { messageType: 'system_ready', apiStatus: 'server_online' }
+          );
+          
+        } catch (serverError) {
+          console.warn("❌ Server API failed, trying direct API:", serverError);
+          
+          // Try direct API as fallback
+          try {
+            console.log("Testing direct Gemini API...");
+            await testGeminiConnection();
+            console.log("✅ Direct API connection successful");
+            
+            const session = createChatSession();
+            setChatSession(session);
+            
+            const directReadyMessage = {
               id: 'direct-ready',
               role: 'model',
               text: '**System Ready.** Direct AI connection established. You can now ask me about flood safety and evacuation procedures.',
               timestamp: new Date(),
-            }
-          ]);
-        } catch (directError) {
-          console.error("❌ Both APIs failed:", directError);
-          
-          setMessages(prev => [
-            ...prev,
-            {
+            };
+            
+            setMessages(prev => [...prev, directReadyMessage]);
+            
+            // Log direct API ready message
+            await ChatStorageService.logMessage(newConversationId, 'model', 
+              directReadyMessage.text,
+              { messageType: 'system_ready', apiStatus: 'direct_online' }
+            );
+            
+          } catch (directError) {
+            console.error("❌ Both APIs failed:", directError);
+            
+            const errorMessage = {
               id: 'error-init',
               role: 'model',
               text: `**Connection Error.** AI services are temporarily unavailable. Please check your internet connection or try refreshing the page. For immediate emergencies, call 911.`,
               timestamp: new Date(),
-            }
-          ]);
+            };
+            
+            setMessages(prev => [...prev, errorMessage]);
+            
+            // Log error message
+            await ChatStorageService.logMessage(newConversationId, 'model', 
+              errorMessage.text,
+              { messageType: 'system_error', errorDetails: directError.message }
+            );
+          }
         }
+        
+      } catch (error) {
+        console.error('❌ Failed to initialize chat storage:', error);
+      } finally {
+        setIsInitialized(true); // Mark as initialized regardless of success/failure
       }
     };
 
     initializeChat();
-  }, []);
+  }, [isInitialized]);
+
+  // Separate useEffect for cleanup handling
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const handleBeforeUnload = () => {
+      if (conversationId) {
+        ChatStorageService.endConversation(conversationId).catch(console.error);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (conversationId) {
+        ChatStorageService.endConversation(conversationId).catch(console.error);
+      }
+    };
+  }, [conversationId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -109,6 +178,18 @@ export const ChatInterface = () => {
     setInput('');
     setIsLoading(true);
 
+    // Log user message to Firestore
+    if (conversationId) {
+      try {
+        await ChatStorageService.logMessage(conversationId, 'user', userMsg.text, {
+          messageType: 'user_input',
+          timestamp: userMsg.timestamp.toISOString()
+        });
+      } catch (error) {
+        console.warn('Failed to log user message:', error);
+      }
+    }
+
     if (textareaRef.current) {
       textareaRef.current.style.height = '46px';
     }
@@ -129,36 +210,11 @@ export const ChatInterface = () => {
       ]);
 
       let aiResponse = '';
-      let useServerFallback = false;
+      let apiUsed = 'server'; // Track which API was used
 
-      // Try direct Gemini API first if chat session exists
-      if (chatSession) {
-        try {
-          const stream = await sendMessageStream(chatSession, userMsg.text);
-          
-          // Handle the streaming response properly
-          for await (const chunk of stream.stream) {
-            if (chunk.text) {
-              aiResponse += chunk.text();
-              setMessages(prev =>
-                prev.map(msg =>
-                  msg.id === aiMsgId ? { ...msg, text: aiResponse } : msg
-                )
-              );
-            }
-          }
-        } catch (streamError) {
-          console.warn("Direct API failed, trying server fallback:", streamError);
-          useServerFallback = true;
-        }
-      } else {
-        console.log("No chat session, using server fallback");
-        useServerFallback = true;
-      }
-
-      // Use server fallback if direct API failed
-      if (useServerFallback) {
-        console.log("Using server API fallback...");
+      // Try server API first (most reliable)
+      try {
+        console.log("Using server API...");
         aiResponse = await sendMessageViaServer(userMsg.text);
         
         setMessages(prev =>
@@ -166,6 +222,34 @@ export const ChatInterface = () => {
             msg.id === aiMsgId ? { ...msg, text: aiResponse } : msg
           )
         );
+      } catch (serverError) {
+        console.warn("Server API failed, trying direct API:", serverError);
+        
+        // Try direct Gemini API as fallback if chat session exists
+        if (chatSession) {
+          try {
+            apiUsed = 'direct';
+            const stream = await sendMessageStream(chatSession, userMsg.text);
+            
+            // Handle the streaming response properly
+            for await (const chunk of stream.stream) {
+              if (chunk.text) {
+                aiResponse += chunk.text();
+                setMessages(prev =>
+                  prev.map(msg =>
+                    msg.id === aiMsgId ? { ...msg, text: aiResponse } : msg
+                  )
+                );
+              }
+            }
+          } catch (streamError) {
+            console.error("Both APIs failed:", streamError);
+            throw new Error("Both server and direct APIs failed: " + streamError.message);
+          }
+        } else {
+          console.error("No fallback available - no chat session");
+          throw new Error("Server API failed and no direct API session available: " + serverError.message);
+        }
       }
 
       // Mark streaming complete
@@ -174,6 +258,19 @@ export const ChatInterface = () => {
           msg.id === aiMsgId ? { ...msg, isStreaming: false } : msg
         )
       );
+
+      // Log AI response to Firestore
+      if (conversationId && aiResponse) {
+        try {
+          await ChatStorageService.logMessage(conversationId, 'model', aiResponse, {
+            messageType: 'ai_response',
+            responseLength: aiResponse.length,
+            apiUsed: apiUsed
+          });
+        } catch (error) {
+          console.warn('Failed to log AI response:', error);
+        }
+      }
 
     } catch (error) {
       console.error('Chat error:', error);
@@ -191,15 +288,32 @@ export const ChatInterface = () => {
         errorMessage = "**Network Error.** Please check your internet connection.";
       }
       
+      const fullErrorMessage = errorMessage + " For emergency situations, call 911 immediately.";
+      
       setMessages(prev => [
         ...prev,
         {
           id: Date.now().toString(),
           role: 'model',
-          text: errorMessage + " For emergency situations, call 911 immediately.",
+          text: fullErrorMessage,
           timestamp: new Date()
         }
       ]);
+
+      // Log error message to Firestore
+      if (conversationId) {
+        try {
+          await ChatStorageService.logMessage(conversationId, 'model', fullErrorMessage, {
+            messageType: 'error_response',
+            errorType: error.message?.includes('API_KEY') ? 'api_key' : 
+                      error.message?.includes('quota') ? 'quota' : 
+                      error.message?.includes('network') ? 'network' : 'unknown',
+            originalError: error.message
+          });
+        } catch (logError) {
+          console.warn('Failed to log error message:', logError);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
