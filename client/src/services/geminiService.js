@@ -58,24 +58,17 @@ export const createChatSession = () => {
 
 // Test Gemini API connection
 export const testGeminiConnection = async () => {
-  const modelNames = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-flash-latest", "gemini-pro-latest"];
-  
-  for (const modelName of modelNames) {
-    try {
-      console.log(`Testing model: ${modelName}`);
-      const model = ai.getGenerativeModel({ model: modelName });
-      const result = await model.generateContent("Hello, respond with 'Connection successful'");
-      const response = await result.response;
-      const text = response.text();
-      console.log(`✅ Model ${modelName} works:`, text);
-      return text;
-    } catch (error) {
-      console.warn(`❌ Model ${modelName} failed:`, error.message);
-      continue;
-    }
+  try {
+    const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const result = await model.generateContent("Hello, respond with 'Connection successful'");
+    const response = await result.response;
+    const text = response.text();
+    console.log("✅ Gemini connection test successful:", text);
+    return text;
+  } catch (error) {
+    console.error("❌ Gemini connection test failed:", error);
+    throw error;
   }
-  
-  throw new Error("All Gemini models failed. Please check your API key and network connection.");
 };
 
 // Send chat message as a stream
@@ -109,7 +102,7 @@ export const sendMessageStream = async (chat, message) => {
 // Fallback: Send message through server API
 export const sendMessageViaServer = async (message) => {
   try {
-    const response = await fetch('/api/gemini/chat', {
+    const response = await fetch('/api/ask-ai', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -118,7 +111,8 @@ export const sendMessageViaServer = async (message) => {
     });
 
     if (!response.ok) {
-      throw new Error(`Server API error: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Server API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
