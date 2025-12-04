@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\OpenWeatherMapService;
+use App\Events\WeatherUpdated;
 use Illuminate\Http\JsonResponse;
+use App\Services\OpenWeatherMapService;
 
 
 class WeatherController extends Controller
@@ -26,9 +27,11 @@ class WeatherController extends Controller
             ], $status);
         }
 
+        $formatted = $this->formatWeatherResponse($weatherData);
+
         return response()->json([
             'status' => 'success',
-            'data' => $this->formatWeatherResponse($weatherData),
+            'data' => $formatted,
         ]);
     }
 
@@ -42,6 +45,7 @@ class WeatherController extends Controller
             'humidity' => $data['main']['humidity'],
             'description' => $data['weather'][0]['description'] ?? 'No description',
             'icon' => $data['weather'][0]['icon'] ?? null,
+            'rainfall'    => $data['rain']['1h'] ?? 0,
             'wind_speed' => $data['wind']['speed'],
         ];
     }
