@@ -116,7 +116,7 @@ export const ReportIncident = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto h-[calc(100vh-6rem)] lg:h-auto pb-4 lg:pb-20 flex flex-col">
+    <div className="max-w-7xl mx-auto h-[calc(100vh-8rem)] lg:h-auto pb-4 lg:pb-20 flex flex-col overflow-hidden">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Community Reports</h1>
         <p className="text-slate-500 text-sm">
@@ -128,7 +128,7 @@ export const ReportIncident = () => {
         {/* Map Column */}
         <div className="lg:col-span-2 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 relative min-h-[300px] lg:min-h-0 order-2 lg:order-1 flex-1">
           <div ref={mapRef} className="w-full h-full" />
-          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-2 rounded-lg shadow text-xs font-medium z-400">
+          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-2 rounded-lg shadow text-xs font-medium z-[100]">
             <div className="flex items-center mb-1">
               <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>{" "}
               Flood

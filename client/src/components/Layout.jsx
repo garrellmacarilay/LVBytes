@@ -29,16 +29,18 @@ export const Layout = ({ user, isOffline }) => {
       <div
         className={`fixed inset-0 z-40 lg:hidden ${
           isSidebarOpen ? "block" : "hidden"
-        }`}
+        } overflow-hidden`}
+        style={{ height: '100vh', width: '100vw' }}
         onClick={() => setSidebarOpen(false)}
       >
         <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
       </div>
 
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto flex flex-col h-screen ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto flex flex-col overflow-hidden ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
+        style={{ height: '100vh' }}
       >
         {/* Header - Fixed at top */}
         <div className="shrink-0 h-16 flex items-center px-6 bg-slate-950">

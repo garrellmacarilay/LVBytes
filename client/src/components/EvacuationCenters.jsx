@@ -311,7 +311,7 @@ export const EvacuationCenters = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
       {/* Page Header */}
       <div className="shrink-0 max-w-7xl mx-auto w-full flex flex-col md:flex-row md:items-center justify-between py-4 px-4 lg:px-6">
         <div>
@@ -343,7 +343,7 @@ export const EvacuationCenters = () => {
         </div>
       </div>
 
-      <div className="flex-1 max-w-7xl mx-auto w-full flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-6 px-4 lg:px-6 pb-4 lg:pb-6 min-h-0 overflow-hidden">
+      <div className="flex-1 max-w-7xl mx-auto w-full flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-6 px-4 lg:px-6 pb-20 min-h-0 overflow-hidden">
         {/* Map View - Fixed within viewport */}
         <div className="flex-1 lg:col-span-2 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 relative shadow-inner group order-1 lg:order-2 min-h-0">
           {/* The Map Container */}
@@ -382,11 +382,11 @@ export const EvacuationCenters = () => {
         {/* Centers List - Horizontal scroll on mobile, vertical on desktop */}
         <div className="flex-1 lg:col-span-1 order-2 lg:order-1 min-h-0 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-x-auto lg:overflow-x-hidden lg:overflow-y-auto overflow-y-hidden lg:overflow-y-auto">
-            <div className="flex lg:flex-col gap-4 p-1 lg:pb-4">
+            <div className="flex lg:flex-col gap-2 p-1 lg:pb-4">
               {filteredCenters.map((center, index) => (
                 <div
                   key={center.id}
-                  className={`w-[85vw] lg:w-full flex-shrink-0 lg:flex-shrink bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-all ${
+                  className={`w-[85vw] lg:w-full shrink-0 lg:flex-shrink bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-all ${
                     activeRouteId === center.id
                       ? "border-blue-500 ring-1 ring-blue-500 shadow-md"
                       : "border-slate-100"

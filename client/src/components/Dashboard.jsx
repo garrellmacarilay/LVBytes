@@ -140,8 +140,57 @@ export const Dashboard = () => {
           <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         )}
       </div>
+       {/* Secondary Section: Quick Actions & Emergency Info */}
+      <div className="grid grid-cols-4 gap-4 mb-4">
+        
+        {/* Evacuation Centers - 1/4 */}
+        <div 
+          onClick={() => navigate('/evacuation')}
+          className="bg-green-50 h-40 rounded-2xl p-5 border border-green-100 flex flex-col justify-center cursor-pointer hover:shadow-md transition-shadow"
+        >
+          <Shield className="w-12 h-12 text-green-600 mb-3" />
+          <h4 className="font-bold text-green-900">Evacuation Centers</h4>
+          <p className="text-xs text-green-700 mt-1">6 Centers Monitored</p>
+        </div>
+
+        {/* Report Incident - 1/4 */}
+        <div 
+          onClick={() => navigate('/report')}
+          className="bg-indigo-50 h-40 rounded-2xl p-5 border border-indigo-100 flex flex-col justify-center cursor-pointer hover:shadow-md transition-shadow"
+        >
+          <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center mb-3 text-indigo-600">
+            <Camera className="w-12 h-12" />
+          </div>
+          <h4 className="font-bold text-indigo-900">Report Incident</h4>
+          <p className="text-xs text-indigo-700 mt-1">Submit Situation Update</p>
+        </div>
+
+        {/* Emergency Contacts - 2/4 */}
+        <div className="col-span-2 h-40 bg-red-50 rounded-2xl p-5 border border-red-100">
+          <h4 className="font-bold text-red-900 flex items-center mb-0 text-sm uppercase tracking-wide">
+            <Phone className="w-5 h-5 mr-2" />
+            Emergency Contacts
+          </h4>
+          <div className="space-y-0">
+            <div className="flex justify-between items-center border-b border-red-100 pb-2 border-dashed">
+              <span className="text-sm text-red-800 font-medium">MDRRMO Apalit</span>
+              <a href="tel:0580230313" className="font-bold text-red-900 hover:bg-red-200 px-2 py-1 rounded transition-colors">(058) 023-0313</a>
+            </div>
+            <div className="flex justify-between items-center border-b border-red-100 pb-2 border-dashed">
+              <span className="text-sm text-red-800 font-medium">National Hotline</span>
+              <a href="tel:911" className="font-bold text-red-900 text-lg hover:bg-red-200 px-2 py-1 rounded transition-colors">911</a>
+            </div>
+            <div className="text-xs text-red-700 pt-1 flex flex-col sm:flex-row sm:items-center">
+              <span className="font-bold mr-1">Barangay Halls:</span> 
+              <span>8:00 AM - 5:00 PM (Weekdays)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        
         
         {/* Risk Gauge Card */}
         <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center justify-between border border-gray-100">
@@ -236,84 +285,10 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Secondary Section: Protocol, Trends & Emergency Info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        {/* Left Column: Water Level Trend */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 flex flex-col h-full">
-           <h3 className="text-gray-500 font-medium mb-4">Water Level Trend (Last 12h)</h3>
-           <div className="flex-1 min-h-[180px] w-full">
-             <ResponsiveContainer width="100%" height="100%">
-               <AreaChart data={waterLevelData}>
-                 <defs>
-                   <linearGradient id="colorLevel" x1="0" y1="0" x2="0" y2="1">
-                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                   </linearGradient>
-                 </defs>
-                 <XAxis dataKey="time" fontSize={10} tickLine={false} axisLine={false} />
-                 <YAxis hide domain={[0, 4]} />
-                 <Tooltip />
-                 <Area type="monotone" dataKey="level" stroke="#3b82f6" fillOpacity={1} fill="url(#colorLevel)" />
-               </AreaChart>
-             </ResponsiveContainer>
-           </div>
-        </div>
-
-        {/* Right Column: Actions & Emergency Contacts */}
-        <div className="flex flex-col gap-4">
-          
-          {/* Quick Actions Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div 
-              onClick={() => navigate('/evacuation')}
-              className="bg-green-50 rounded-2xl p-5 border border-green-100 flex flex-col justify-center cursor-pointer hover:shadow-md transition-shadow"
-            >
-              <Shield className="w-8 h-8 text-green-600 mb-3" />
-              <h4 className="font-bold text-green-900">Evacuation Centers</h4>
-              <p className="text-xs text-green-700 mt-1">6 Centers Monitored</p>
-            </div>
-            <div 
-              onClick={() => navigate('/report')}
-              className="bg-indigo-50 rounded-2xl p-5 border border-indigo-100 flex flex-col justify-center cursor-pointer hover:shadow-md transition-shadow"
-            >
-              <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center mb-3 text-indigo-600">
-                <Camera className="w-5 h-5" />
-              </div>
-              <h4 className="font-bold text-indigo-900">Report Incident</h4>
-              <p className="text-xs text-indigo-700 mt-1">Submit Situation Update</p>
-            </div>
-          </div>
-
-          {/* Emergency Contacts Card */}
-          <div className="bg-red-50 rounded-2xl p-5 border border-red-100">
-            <h4 className="font-bold text-red-900 flex items-center mb-3 text-sm uppercase tracking-wide">
-              <Phone className="w-5 h-5 mr-2" />
-              Emergency Contacts
-            </h4>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center border-b border-red-100 pb-2 border-dashed">
-                <span className="text-sm text-red-800 font-medium">MDRRMO Apalit</span>
-                <a href="tel:0580230313" className="font-bold text-red-900 hover:bg-red-200 px-2 py-1 rounded transition-colors">(058) 023-0313</a>
-              </div>
-              <div className="flex justify-between items-center border-b border-red-100 pb-2 border-dashed">
-                <span className="text-sm text-red-800 font-medium">National Hotline</span>
-                <a href="tel:911" className="font-bold text-red-900 text-lg hover:bg-red-200 px-2 py-1 rounded transition-colors">911</a>
-              </div>
-              <div className="text-xs text-red-700 pt-1 flex flex-col sm:flex-row sm:items-center">
-                <span className="font-bold mr-1">Barangay Halls:</span> 
-                <span>8:00 AM - 5:00 PM (Weekdays)</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
       {/* Floating Action Button */}
       <button 
         onClick={() => navigate('/chat')}
-        className={`fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105 z-30 ${
+        className={`fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105 z-[100] ${
           riskLevel === RiskLevel.HIGH || riskLevel === RiskLevel.CRITICAL ? 'animate-pulse shadow-red-500/50 ring-4 ring-red-500/30 bg-red-600 hover:bg-red-500' : 'shadow-blue-500/40'
         }`}
       >

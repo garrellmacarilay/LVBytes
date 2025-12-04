@@ -516,7 +516,7 @@ export const ChatInterface = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] lg:h-[calc(100vh-6rem)] max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="flex flex-col w-se h-[calc(100vh-8rem)] lg:h-[calc(100vh-6rem)] max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden" style={{ maxHeight: 'calc(100vh - 8rem)' }}>
 
       {/* Header */}
       <div className="bg-blue-50 px-4 py-2 border-b border-blue-100 flex items-center justify-center shrink-0">
