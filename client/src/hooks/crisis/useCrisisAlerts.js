@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api from "../../utils/api"; // your axios instance
+import { api } from "../../utils/api"; // your axios instance
 
 /**
  * Custom hook to fetch crisis alerts for a specific city
