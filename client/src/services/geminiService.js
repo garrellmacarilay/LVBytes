@@ -21,22 +21,96 @@ Do not provide medical advice.
 Keep responses short and easy to read on mobile.
 `;
 
-// Create chat session
+// Create chat session with fallback models
 export const createChatSession = () => {
-  return ai.getGenerativeModel({ model: "gemini-2.5-flash" }).startChat({
-    systemInstruction: SYSTEM_INSTRUCTION,
-    temperature: 0.4,
-    thinkingConfig: { thinkingBudget: 0 } // disable deep thinking for speed
-  });
+  try {
+    if (!apiKey) {
+      throw new Error("API_KEY is missing - check your .env file");
+    }
+    
+    const model = ai.getGenerativeModel({ 
+      model: "gemini-2.5-flash"
+    });
+    
+    const chatSession = model.startChat({
+      systemInstruction: SYSTEM_INSTRUCTION,
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 1000,
+      }
+    });
+    
+    console.log("✅ Chat session created successfully");
+    return chatSession;
+  } catch (error) {
+    console.error("Failed to create chat session:", error);
+    throw error;
+  }
+};
+
+// Test Gemini API connection
+export const testGeminiConnection = async () => {
+  try {
+    const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const result = await model.generateContent("Hello, respond with 'Connection successful'");
+    const response = await result.response;
+    const text = response.text();
+    console.log("✅ Gemini connection test successful:", text);
+    return text;
+  } catch (error) {
+    console.error("❌ Gemini connection test failed:", error);
+    throw error;
+  }
 };
 
 // Send chat message as a stream
 export const sendMessageStream = async (chat, message) => {
   try {
+    if (!chat) {
+      throw new Error("Chat session not initialized");
+    }
+    
+    console.log("Sending message to Gemini:", message);
     const response = await chat.sendMessageStream(message);
+    console.log("Gemini response received");
+    
     return response;
   } catch (error) {
     console.error("Gemini API Stream Error:", error);
+    
+    // Provide more specific error information
+    if (error.message?.includes('API_KEY')) {
+      throw new Error("API_KEY configuration issue: " + error.message);
+    } else if (error.message?.includes('quota')) {
+      throw new Error("quota exceeded: " + error.message);
+    } else if (!navigator.onLine) {
+      throw new Error("network connectivity issue");
+    }
+    
+    throw error;
+  }
+};
+
+// Fallback: Send message through server API
+export const sendMessageViaServer = async (message) => {
+  try {
+    const response = await fetch('/api/ask-ai', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Server API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data.response;
+  } catch (error) {
+    console.error("Server API error:", error);
     throw error;
   }
 };
