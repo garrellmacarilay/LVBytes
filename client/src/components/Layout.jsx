@@ -44,7 +44,11 @@ export const Layout = ({ user, isOffline }) => {
       >
         {/* Header - Fixed at top */}
         <div className="shrink-0 h-16 flex items-center px-6 bg-slate-950">
-          <Shield className="w-6 h-6 text-blue-400 mr-2" />
+          <img 
+            src="/img/FloodGuard.png" 
+            alt="FloodGuard Logo" 
+            className="w-12 h-12 mr-0 object-contain"
+          />
           <span className="text-xl font-bold tracking-tight">
             FloodGuard AI
           </span>
