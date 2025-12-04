@@ -68,8 +68,6 @@ const initialCenters = [
     address: "Sulipan Barangay, Apalit (Via Sulipan Road)",
     distance: 0, // Calculated dynamically
     status: "Open",
-    occupancy: 45,
-    capacityCount: { current: 180, max: 400 },
     coordinates: { lat: 14.9368921, lng: 120.7579668 },
     phone: "(045) 302-7033"
   },
@@ -79,8 +77,6 @@ const initialCenters = [
     address: "525 Alauli Rd, Capalangan Barangay",
     distance: 0,
     status: "Open",
-    occupancy: 20,
-    capacityCount: { current: 100, max: 500 },
     coordinates: { lat: 14.9309, lng: 120.7681 },
     phone: "(045) 302-9999"
   },
@@ -90,8 +86,6 @@ const initialCenters = [
     address: "San Juan (Poblacion), Municipal Center",
     distance: 0,
     status: "Open",
-    occupancy: 75,
-    capacityCount: { current: 600, max: 800 },
     coordinates: { lat: 14.949561, lng: 120.758692 },
     phone: "(045) 302-6001"
   },
@@ -101,8 +95,6 @@ const initialCenters = [
     address: "151 Sulipan Road, Sulipan/San Vicente",
     distance: 0,
     status: "Full", // Secondary center, marked full for demo variety
-    occupancy: 95,
-    capacityCount: { current: 950, max: 1000 },
     coordinates: { lat: 14.941889, lng: 120.759722 },
     phone: "(045) 302-5555"
   },
@@ -112,8 +104,6 @@ const initialCenters = [
     address: "Governor Gonzales Avenue, San Juan",
     distance: 0,
     status: "Open",
-    occupancy: 30,
-    capacityCount: { current: 150, max: 500 },
     coordinates: { lat: 14.95, lng: 120.758 },
     phone: "(045) 302-4444"
   },
@@ -123,8 +113,6 @@ const initialCenters = [
     address: "Tabuyuc (Santo Rosario) Barangay",
     distance: 0,
     status: "Open",
-    occupancy: 60,
-    capacityCount: { current: 300, max: 500 },
     coordinates: { lat: 14.9738, lng: 120.7486 },
     phone: "(045) 302-2222"
   }
@@ -484,33 +472,6 @@ export const EvacuationCenters = () => {
                     {center.name}
                   </h3>
                   <p className="text-slate-500 text-xs">{center.address}</p>
-                </div>
-              </div>
-
-              {/* Capacity Bar */}
-              <div className="mb-4">
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-slate-600 font-medium">Occupancy</span>
-                  <span
-                    className={`${
-                      center.occupancy > 90 ? "text-red-600" : "text-slate-600"
-                    }`}
-                  >
-                    {center.occupancy}% ({center.capacityCount.current}/
-                    {center.capacityCount.max})
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-500 ${
-                      center.occupancy < 50
-                        ? "bg-green-500"
-                        : center.occupancy < 90
-                        ? "bg-yellow-500"
-                        : "bg-red-500"
-                    }`}
-                    style={{ width: `${center.occupancy}%` }}
-                  ></div>
                 </div>
               </div>
 
