@@ -1,38 +1,37 @@
 import React, { useState, useEffect, useRef } from "react"
 import { Camera, Send, AlertOctagon, ThumbsUp } from "./Icons"
+import { addData, listenData } from "../lib/db/db"
+import { useCrisisAlerts } from "../hooks/crisis/useCrisisAlerts"
 
 export const ReportIncident = () => {
+  const cityName = "Apalit" // define your city here
   const [reportType, setReportType] = useState("Flood")
   const [description, setDescription] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { alerts, location } = useCrisisAlerts(cityName)
   const mapRef = useRef(null)
   const leafletMap = useRef(null)
   const markersRef = useRef([])
+  const [feed, setFeed] = useState([])
 
-  // Mock Feed Data
-  const [feed, setFeed] = useState([
-    {
-      id: "1",
-      type: "Flood",
-      description:
-        "Waist-deep water near San Juan Plaza. Passable only by truck.",
-      timestamp: "10m ago",
-      location: { lat: 14.9495, lng: 120.7587 },
-      reporter: "Barangay Captain",
-      verified: true,
-      upvotes: 12
-    },
-    {
-      id: "2",
-      type: "Road Block",
-      description: "Fallen tree on McArthur Highway. Traffic stalled.",
-      timestamp: "25m ago",
-      location: { lat: 14.94, lng: 120.76 },
-      reporter: "Juan D.",
-      verified: false,
-      upvotes: 5
-    }
-  ])
+  // Listen for real-time updates
+  useEffect(() => {
+    listenData('reports', (data) => {
+      if (!data) {
+        setFeed([])
+        return
+      }
+
+      const formatted = Object.keys(data)
+        .map(id => ({
+          id,
+          ...data[id]
+        }))
+        .sort((a, b) => b.createdAt - a.createdAt) // newest first
+
+      setFeed(formatted)
+    })
+  }, [])
 
   // Initialize Map
   useEffect(() => {
@@ -48,7 +47,6 @@ export const ReportIncident = () => {
       }).addTo(leafletMap.current)
     }
 
-    // Cleanup on unmount
     return () => {
       if (leafletMap.current) {
         leafletMap.current.remove()
@@ -65,7 +63,6 @@ export const ReportIncident = () => {
     markersRef.current.forEach(marker => leafletMap.current.removeLayer(marker))
     markersRef.current = []
 
-    // Add new markers
     feed.forEach(item => {
       const color = item.type === "Flood" ? "bg-blue-500" : "bg-red-500"
       const icon = L.divIcon({
@@ -73,7 +70,12 @@ export const ReportIncident = () => {
         html: `<div class="w-4 h-4 rounded-full ${color} border-2 border-white shadow-sm"></div>`,
         iconSize: [16, 16]
       })
-      const marker = L.marker([item.location.lat, item.location.lng], { icon })
+
+      // fallback to default coords if item.location is undefined
+      const lat = item.location?.lat ?? 14.9495
+      const lng = item.location?.lng ?? 120.7587
+
+      const marker = L.marker([lat, lng], { icon })
         .addTo(leafletMap.current)
         .bindPopup(`<b>${item.type}</b><br/>${item.description}`)
 
@@ -81,38 +83,26 @@ export const ReportIncident = () => {
     })
   }, [feed])
 
-  const handleSubmit = e => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      const newIncident = {
-        id: Date.now().toString(),
-        type: reportType,
-        description,
-        timestamp: "Just now",
-        location: {
-          lat: 14.9495 + (Math.random() * 0.01 - 0.005),
-          lng: 120.7587 + (Math.random() * 0.01 - 0.005)
-        },
-        reporter: "You",
-        verified: false,
-        upvotes: 0
-      }
+    const newIncident = {
+      type: reportType,
+      description,
+      reporter: "You",
+      verified: false,
+      upvotes: 0,
+      timestamp: "Just now",
+      createdAt: Date.now(),
+      // Use location from crisis API, fallback if undefined
+      location: location ?? { lat: 14.9495, lng: 120.7587 }
+    }
 
-      setFeed(prev => [newIncident, ...prev])
-      setDescription("")
-      setIsSubmitting(false)
+    await addData("reports", newIncident)
 
-      // Pan to new incident
-      if (leafletMap.current) {
-        leafletMap.current.setView(
-          [newIncident.location.lat, newIncident.location.lng],
-          15
-        )
-      }
-    }, 1000)
+    setDescription("")
+    setIsSubmitting(false)
   }
 
   return (

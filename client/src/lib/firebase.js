@@ -13,6 +13,7 @@ const firebaseConfig = {
   authDomain: "lvbytes-a5863.firebaseapp.com",
   projectId: "lvbytes-a5863",
   storageBucket: "lvbytes-a5863.firebasestorage.app",
+  databaseURL: "https://lvbytes-a5863-default-rtdb.firebaseio.com/",
   messagingSenderId: "154663536062",
   appId: "1:154663536062:web:3e7d1249211d8ef7dfa5ef",
   measurementId: "G-29PYC71S7N"
