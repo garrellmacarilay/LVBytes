@@ -27,7 +27,7 @@ export const LandingPage = () => {
               <img 
                 src="/img/FloodGuard.png" 
                 alt="FloodGuard Logo" 
-                className="w-10 h-10 mr-3 object-contain"
+                className="w-15 h-15 object-contain"
               />
               <span className="text-xl font-bold text-slate-900 tracking-tight">
                 FloodGuard AI
@@ -227,7 +227,7 @@ export const LandingPage = () => {
               <img 
                 src="/img/FloodGuard.png" 
                 alt="FloodGuard Logo" 
-                className="w-6 h-6 mr-2 object-contain"
+                className="w-15 h-15 object-contain"
               />
               <span className="text-slate-900 font-bold text-lg">
                 FloodGuard AI
