@@ -98,6 +98,7 @@ export const Dashboard = () => {
   const { alerts: crisisAlerts } = useCrisisAlerts(location);
 
   const [alerts, setAlerts] = useState([]);
+  
 
   const [isLoadingWeather, setIsLoadingWeather] = useState(true);
 
