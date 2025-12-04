@@ -393,7 +393,7 @@ export const ChatInterface = () => {
       {/* Input */}
       <div className="p-4 border-t border-gray-100 bg-white shrink-0">
 
-        {messages.length < 3 && (
+        {messages.length < 100000 && (
           <div className="flex overflow-x-auto space-x-2 mb-3 pb-1 scrollbar-hide">
             {quickPrompts.map(prompt => (
               <button
